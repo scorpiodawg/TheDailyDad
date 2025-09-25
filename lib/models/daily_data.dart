@@ -1,6 +1,7 @@
 import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
 import 'package:the_daily_dad/models/news_item.dart';
+// Wikipedia content is not cached
 
 class DailyData {
   final String date;
@@ -18,9 +19,11 @@ class DailyData {
   factory DailyData.fromJson(Map<String, dynamic> json) {
     return DailyData(
       date: json['date'],
-      newsItems: (json['newsItems'] as List).map((i) => NewsItem.fromJson(i)).toList(),
+      newsItems:
+          (json['newsItems'] as List).map((i) => NewsItem.fromJson(i)).toList(),
       jokes: (json['jokes'] as List).map((i) => Joke.fromJson(i)).toList(),
-      factoids: (json['factoids'] as List).map((i) => Factoid.fromJson(i)).toList(),
+      factoids:
+          (json['factoids'] as List).map((i) => Factoid.fromJson(i)).toList(),
     );
   }
 

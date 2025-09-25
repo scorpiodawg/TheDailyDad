@@ -17,3 +17,4 @@ Technology notes:
 - Use Flutter for mobile and ensure it works on Android and iPhone
 - Use smooth, fluid animations for collapse and reveal of the categories
 - Use a modern font for displaying the items
+- Use a tab size of 4
