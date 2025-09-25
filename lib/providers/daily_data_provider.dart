@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 import 'package:the_daily_dad/contants.dart';
 import 'package:the_daily_dad/models/daily_data.dart';
 import 'package:the_daily_dad/models/factoid.dart';
@@ -10,6 +12,7 @@ import 'package:the_daily_dad/services/api_service.dart';
 import 'package:the_daily_dad/services/cache_service.dart';
 
 class DailyDataProvider extends ChangeNotifier {
+  final _log = Logger('DailyDataProvider');
   final ApiService _apiService = ApiService();
   final CacheService _cacheService = CacheService();
 
@@ -29,56 +32,86 @@ class DailyDataProvider extends ChangeNotifier {
     fetchDailyData();
   }
 
-  Future<void> fetchDailyData({bool forceRefresh = false}) async {
+  Future<void> fetchDailyData({bool forceRefresh = AppConfig.debugMode}) async {
+    _log.info(
+        'Fetching daily data. Force refresh: $forceRefresh, isLoading: $_isLoading');
     _isLoading = true;
     notifyListeners();
 
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-    if (AppConfig.debugMode) {
-      // Always force a refresh in debug mode
-      forceRefresh = true;
-    }
+    DailyData? cachedData;
 
     if (!forceRefresh) {
-      final cachedData = await _cacheService.getCachedData();
-      if (cachedData != null && cachedData.date == today) {
+      cachedData = await _cacheService.getCachedData();
+    }
+
+    try {
+      if (!forceRefresh && cachedData != null && cachedData.date == today) {
+        _log.info('Using cached data for $today.');
         _newsItems = cachedData.newsItems;
         _jokes = cachedData.jokes;
         _factoids = cachedData.factoids;
         // Re-fetch Wikipedia content as we don't cache it
+        _log.info('Re-fetching Wikipedia content for cached data.');
         _wikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
+      } else {
+        if (forceRefresh) {
+          _log.info('Forcing refresh, ignoring cache.');
+        } else if (cachedData == null) {
+          _log.info('No cached data found.');
+        } else {
+          _log.info(
+              'Cached data is stale (date: ${cachedData.date}). Fetching new data.');
+        }
+
+        List<NewsItem> fetchedNews = [];
+        try {
+            fetchedNews = await _apiService.fetchNews();
+        } catch (e) {
+            _log.warning('Error fetching news: $e');
+        }
+
+        List<Joke> fetchedJokes = [];
+        try {
+            fetchedJokes = await _apiService.fetchJokes(count: 5);
+        } catch (e) {
+            _log.warning('Error fetching jokes: $e');
+        }
+
+        List<Factoid> fetchedFactoids = [];
+        try {
+            fetchedFactoids = await _apiService.fetchFactoids();
+        } catch (e) {
+            _log.warning('Error fetching factoids: $e');
+        }
+
+        WikipediaContent? fetchedWikipediaContent;
+        try {
+            fetchedWikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
+        } catch (e) {
+            _log.warning('Error fetching Wikipedia content: $e');
+        }
+
+        _newsItems = fetchedNews;
+        _jokes = fetchedJokes;
+        _factoids = fetchedFactoids;
+        _wikipediaContent = fetchedWikipediaContent;
+
+        _log.info('New data fetched. Caching for date: $today.');
+        final newData = DailyData(
+          date: today,
+          newsItems: _newsItems,
+          jokes: _jokes,
+          factoids: _factoids,
+        );
+        await _cacheService.cacheDailyData(newData);
       }
-    } else {
-      final fetchedNews = await _apiService.fetchNews();
-      final fetchedJokes = await _getUniqueJokes();
-      final fetchedFactoids = await _apiService.fetchFactoids();
-      final fetchedWikipediaContent =
-          await _apiService.fetchWikipediaFeaturedContent();
-
-      _newsItems = fetchedNews;
-      _jokes = fetchedJokes;
-      _factoids = fetchedFactoids;
-      _wikipediaContent = fetchedWikipediaContent;
-
-      final newData = DailyData(
-        date: today,
-        newsItems: _newsItems,
-        jokes: _jokes,
-        factoids: _factoids,
-      );
-      await _cacheService.cacheDailyData(newData);
+    } catch (e) {
+      _log.severe('An unrecoverable error occurred during fetchDailyData: $e');
+    } finally {
+      _isLoading = false;
+      _log.info('Finished fetching daily data. Notifying listeners.');
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<List<Joke>> _getUniqueJokes() async {
-    // This is a simplified approach. For a real app, we would persist
-    // the list of seen joke IDs.
-    final allJokes = await _apiService.fetchJokes(count: 20);
-    allJokes.shuffle();
-    return allJokes.take(3).toList();
   }
 }
