@@ -4,6 +4,7 @@ import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
 import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/models/quote.dart';
+import 'package:the_daily_dad/models/trivia_item.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:the_daily_dad/models/wikipedia_content.dart';
@@ -16,6 +17,8 @@ class ApiService {
   final String _wikipediaBaseUrl =
       'https://api.wikimedia.org/feed/v1/wikipedia/en/featured';
   final String _quotesBaseUrl = 'https://zenquotes.io/api/quotes';
+  final String _triviaBaseUrl =
+      'https://opentdb.com/api.php?amount=10&type=boolean';
   final String _newsApiKey = dotenv.env['NEWS_API_KEY'] ?? '';
   final String _serpApiKey = dotenv.env['SERP_API_KEY'] ?? '';
   final String _source = dotenv.env['SOURCE'] ?? 'serpapi';
@@ -148,5 +151,17 @@ class ApiService {
     } else {
       throw Exception('Failed to load quotes');
     }
+  }
+
+  Future<List<TriviaItem>> fetchTrivia() async {
+    final response = await http.get(Uri.parse(_triviaBaseUrl));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['results'] is List) {
+        final List<dynamic> results = data['results'];
+        return results.map((json) => TriviaItem.fromJson(json)).toList();
+      }
+    }
+    throw Exception('Failed to load trivia');
   }
 }

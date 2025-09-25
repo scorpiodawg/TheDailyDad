@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/providers/daily_data_provider.dart';
+import 'package:the_daily_dad/widgets/trivia_item_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -186,6 +187,35 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         isExpanded: _expandedIndex ==
                             (provider.wikipediaContent != null ? 4 : 3),
+                      ),
+                    if (provider.triviaItems.isNotEmpty)
+                      ExpansionPanel(
+                        headerBuilder: (BuildContext context, bool isExpanded) {
+                          return const ListTile(
+                            title: Text(
+                              'Trivia',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        },
+                        body: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: provider.triviaItems.length,
+                          itemBuilder: (context, index) {
+                            return TriviaItemWidget(
+                              item: provider.triviaItems[index],
+                              index: index,
+                            );
+                          },
+                        ),
+                        isExpanded: _expandedIndex ==
+                            ((provider.wikipediaContent != null ? 1 : 0) +
+                                (provider.quotes.isNotEmpty ? 1 : 0) +
+                                3),
                       ),
                   ],
                 ),

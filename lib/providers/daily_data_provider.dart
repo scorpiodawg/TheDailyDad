@@ -8,6 +8,7 @@ import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
 import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/models/quote.dart';
+import 'package:the_daily_dad/models/trivia_item.dart';
 import 'package:the_daily_dad/models/wikipedia_content.dart';
 import 'package:the_daily_dad/services/api_service.dart';
 import 'package:the_daily_dad/services/cache_service.dart';
@@ -22,6 +23,7 @@ class DailyDataProvider extends ChangeNotifier {
   List<Factoid> _factoids = [];
   WikipediaContent? _wikipediaContent;
   List<Quote> _quotes = [];
+  List<TriviaItem> _triviaItems = [];
   bool _isLoading = false;
 
   List<NewsItem> get newsItems => _newsItems;
@@ -29,6 +31,7 @@ class DailyDataProvider extends ChangeNotifier {
   List<Factoid> get factoids => _factoids;
   WikipediaContent? get wikipediaContent => _wikipediaContent;
   List<Quote> get quotes => _quotes;
+  List<TriviaItem> get triviaItems => _triviaItems;
   bool get isLoading => _isLoading;
 
   DailyDataProvider() {
@@ -60,6 +63,9 @@ class DailyDataProvider extends ChangeNotifier {
         final allQuotes = await _apiService.fetchQuotes();
         allQuotes.shuffle();
         _quotes = allQuotes.take(5).toList();
+        final allTrivia = await _apiService.fetchTrivia();
+        allTrivia.shuffle();
+        _triviaItems = allTrivia.take(5).toList();
       } else {
         if (forceRefresh) {
           _log.info('Forcing refresh, ignoring cache.');
@@ -108,11 +114,21 @@ class DailyDataProvider extends ChangeNotifier {
           _log.warning('Error fetching quotes: $e');
         }
 
+        List<TriviaItem> fetchedTrivia = [];
+        try {
+          final allTrivia = await _apiService.fetchTrivia();
+          allTrivia.shuffle();
+          fetchedTrivia = allTrivia.take(5).toList();
+        } catch (e) {
+          _log.warning('Error fetching trivia: $e');
+        }
+
         _newsItems = fetchedNews;
         _jokes = fetchedJokes;
         _factoids = fetchedFactoids;
         _wikipediaContent = fetchedWikipediaContent;
         _quotes = fetchedQuotes;
+        _triviaItems = fetchedTrivia;
 
         _log.info('New data fetched. Caching for date: $today.');
         final newData = DailyData(
@@ -128,6 +144,13 @@ class DailyDataProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       _log.info('Finished fetching daily data. Notifying listeners.');
+      notifyListeners();
+    }
+  }
+
+  void revealTriviaAnswer(int index) {
+    if (index < _triviaItems.length) {
+      _triviaItems[index].revealed = true;
       notifyListeners();
     }
   }
