@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
 import 'package:the_daily_dad/models/news_item.dart';
+import 'package:the_daily_dad/models/quote.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:the_daily_dad/models/wikipedia_content.dart';
@@ -14,6 +15,7 @@ class ApiService {
       'https://uselessfacts.jsph.pl/api/v2/facts/random';
   final String _wikipediaBaseUrl =
       'https://api.wikimedia.org/feed/v1/wikipedia/en/featured';
+  final String _quotesBaseUrl = 'https://zenquotes.io/api/quotes';
   final String _newsApiKey = dotenv.env['NEWS_API_KEY'] ?? '';
   final String _serpApiKey = dotenv.env['SERP_API_KEY'] ?? '';
   final String _source = dotenv.env['SOURCE'] ?? 'serpapi';
@@ -135,6 +137,16 @@ class ApiService {
       return WikipediaContent(tfa: tfa, onThisDay: onThisDay);
     } else {
       throw Exception('Failed to load Wikipedia featured content');
+    }
+  }
+
+  Future<List<Quote>> fetchQuotes() async {
+    final response = await http.get(Uri.parse(_quotesBaseUrl));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Quote.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load quotes');
     }
   }
 }

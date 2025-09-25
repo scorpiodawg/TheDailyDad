@@ -7,6 +7,7 @@ import 'package:the_daily_dad/models/daily_data.dart';
 import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
 import 'package:the_daily_dad/models/news_item.dart';
+import 'package:the_daily_dad/models/quote.dart';
 import 'package:the_daily_dad/models/wikipedia_content.dart';
 import 'package:the_daily_dad/services/api_service.dart';
 import 'package:the_daily_dad/services/cache_service.dart';
@@ -20,12 +21,14 @@ class DailyDataProvider extends ChangeNotifier {
   List<Joke> _jokes = [];
   List<Factoid> _factoids = [];
   WikipediaContent? _wikipediaContent;
+  List<Quote> _quotes = [];
   bool _isLoading = false;
 
   List<NewsItem> get newsItems => _newsItems;
   List<Joke> get jokes => _jokes;
   List<Factoid> get factoids => _factoids;
   WikipediaContent? get wikipediaContent => _wikipediaContent;
+  List<Quote> get quotes => _quotes;
   bool get isLoading => _isLoading;
 
   DailyDataProvider() {
@@ -54,6 +57,9 @@ class DailyDataProvider extends ChangeNotifier {
         // Re-fetch Wikipedia content as we don't cache it
         _log.info('Re-fetching Wikipedia content for cached data.');
         _wikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
+        final allQuotes = await _apiService.fetchQuotes();
+        allQuotes.shuffle();
+        _quotes = allQuotes.take(5).toList();
       } else {
         if (forceRefresh) {
           _log.info('Forcing refresh, ignoring cache.');
@@ -66,36 +72,47 @@ class DailyDataProvider extends ChangeNotifier {
 
         List<NewsItem> fetchedNews = [];
         try {
-            fetchedNews = await _apiService.fetchNews();
+          fetchedNews = await _apiService.fetchNews();
         } catch (e) {
-            _log.warning('Error fetching news: $e');
+          _log.warning('Error fetching news: $e');
         }
 
         List<Joke> fetchedJokes = [];
         try {
-            fetchedJokes = await _apiService.fetchJokes(count: 5);
+          fetchedJokes = await _apiService.fetchJokes(count: 5);
         } catch (e) {
-            _log.warning('Error fetching jokes: $e');
+          _log.warning('Error fetching jokes: $e');
         }
 
         List<Factoid> fetchedFactoids = [];
         try {
-            fetchedFactoids = await _apiService.fetchFactoids();
+          fetchedFactoids = await _apiService.fetchFactoids();
         } catch (e) {
-            _log.warning('Error fetching factoids: $e');
+          _log.warning('Error fetching factoids: $e');
         }
 
         WikipediaContent? fetchedWikipediaContent;
         try {
-            fetchedWikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
+          fetchedWikipediaContent =
+              await _apiService.fetchWikipediaFeaturedContent();
         } catch (e) {
-            _log.warning('Error fetching Wikipedia content: $e');
+          _log.warning('Error fetching Wikipedia content: $e');
+        }
+
+        List<Quote> fetchedQuotes = [];
+        try {
+          final allQuotes = await _apiService.fetchQuotes();
+          allQuotes.shuffle();
+          fetchedQuotes = allQuotes.take(5).toList();
+        } catch (e) {
+          _log.warning('Error fetching quotes: $e');
         }
 
         _newsItems = fetchedNews;
         _jokes = fetchedJokes;
         _factoids = fetchedFactoids;
         _wikipediaContent = fetchedWikipediaContent;
+        _quotes = fetchedQuotes;
 
         _log.info('New data fetched. Caching for date: $today.');
         final newData = DailyData(
