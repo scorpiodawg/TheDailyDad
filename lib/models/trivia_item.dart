@@ -1,3 +1,5 @@
+import 'package:html_unescape/html_unescape.dart';
+
 class TriviaItem {
   final String question;
   final bool correctAnswer;
@@ -10,8 +12,9 @@ class TriviaItem {
   });
 
   factory TriviaItem.fromJson(Map<String, dynamic> json) {
+    var unescape = HtmlUnescape();
     return TriviaItem(
-      question: json['question'] ?? '',
+      question: unescape.convert(json['question'] ?? ''),
       correctAnswer: json['correct_answer'] == 'True',
     );
   }
