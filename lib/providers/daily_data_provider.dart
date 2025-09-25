@@ -57,15 +57,11 @@ class DailyDataProvider extends ChangeNotifier {
         _newsItems = cachedData.newsItems;
         _jokes = cachedData.jokes;
         _factoids = cachedData.factoids;
+        _quotes = cachedData.quotes;
+        _triviaItems = cachedData.triviaItems;
         // Re-fetch Wikipedia content as we don't cache it
         _log.info('Re-fetching Wikipedia content for cached data.');
         _wikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
-        final allQuotes = await _apiService.fetchQuotes();
-        allQuotes.shuffle();
-        _quotes = allQuotes.take(5).toList();
-        final allTrivia = await _apiService.fetchTrivia();
-        allTrivia.shuffle();
-        _triviaItems = allTrivia.take(5).toList();
       } else {
         if (forceRefresh) {
           _log.info('Forcing refresh, ignoring cache.');
@@ -136,6 +132,8 @@ class DailyDataProvider extends ChangeNotifier {
           newsItems: _newsItems,
           jokes: _jokes,
           factoids: _factoids,
+          quotes: _quotes,
+          triviaItems: _triviaItems,
         );
         await _cacheService.cacheDailyData(newData);
       }

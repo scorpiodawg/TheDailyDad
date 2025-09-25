@@ -18,4 +18,11 @@ class TriviaItem {
       correctAnswer: json['correct_answer'] == 'True',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'question': question,
+      'correct_answer': correctAnswer ? 'True' : 'False',
+    };
+  }
 }

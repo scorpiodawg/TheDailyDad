@@ -10,4 +10,11 @@ class Quote {
       author: json['a'] ?? 'Unknown',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'q': quote,
+      'a': author,
+    };
+  }
 }
