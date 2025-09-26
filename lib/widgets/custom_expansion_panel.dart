@@ -21,9 +21,7 @@ class _CustomExpansionPanelState extends State<CustomExpansionPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+    return Container(
       margin: const EdgeInsets.symmetric(vertical: 2.0),
       decoration: BoxDecoration(
         gradient: widget.gradient,
@@ -48,7 +46,16 @@ class _CustomExpansionPanelState extends State<CustomExpansionPanel> {
               ],
             ),
           ),
-          if (_isExpanded) widget.body,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return SizeTransition(
+                sizeFactor: animation,
+                child: child,
+              );
+            },
+            child: _isExpanded ? widget.body : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
