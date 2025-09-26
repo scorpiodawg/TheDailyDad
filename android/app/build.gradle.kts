@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.the_daily_dad"
+    namespace = "cx.iio.the_daily_dad"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,10 +20,10 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.the_daily_dad"
+        // Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "cx.iio.the_daily_dad"
         // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
