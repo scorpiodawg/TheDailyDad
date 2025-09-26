@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/providers/daily_data_provider.dart';
 import 'package:the_daily_dad/utils/color_utils.dart';
+import 'package:the_daily_dad/widgets/custom_expansion_panel.dart';
 import 'package:the_daily_dad/widgets/trivia_item_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _expandedIndex = -1;
   late List<LinearGradient> _gradients;
 
   @override
@@ -35,21 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final panels = _buildPanels(provider);
-
           return RefreshIndicator(
             onRefresh: () => provider.fetchDailyData(forceRefresh: true),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: ExpansionPanelList(
-                expansionCallback: (int index, bool isExpanded) {
-                  setState(() {
-                    _expandedIndex = isExpanded ? index : -1;
-                  });
-                },
-                expandIconColor: Colors.black54,
-                children: panels,
-              ),
+            child: ListView(
+              padding: const EdgeInsets.all(8.0),
+              children: _buildPanels(provider),
             ),
           );
         },
@@ -57,72 +47,60 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<ExpansionPanel> _buildPanels(DailyDataProvider provider) {
-    final List<ExpansionPanel> panels = [];
+  List<Widget> _buildPanels(DailyDataProvider provider) {
+    final List<Widget> panels = [];
     int panelIndex = 0;
 
     // News Panel
-    panels.add(_buildTitledPanel(
-      title: 'News',
-      body: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: provider.newsItems.length,
-        itemBuilder: (context, index) {
-          final item = provider.newsItems[index];
-          return ListTile(
+    if (provider.newsItems.isNotEmpty) {
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('News'),
+        body: _buildListBody(
+          items: provider.newsItems,
+          itemBuilder: (context, item) => ListTile(
             title: Text(item.title),
             subtitle: Text(item.description),
             onTap: () => _launchUrl(item.link),
-          );
-        },
-      ),
-      gradient: _gradients[0],
-      index: panelIndex++,
-    ));
+          ),
+        ),
+      ));
+    }
 
     // Jokes Panel
-    panels.add(_buildTitledPanel(
-      title: 'Jokes',
-      body: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: provider.jokes.length,
-        itemBuilder: (context, index) {
-          final item = provider.jokes[index];
-          return ListTile(
+    if (provider.jokes.isNotEmpty) {
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('Jokes'),
+        body: _buildListBody(
+          items: provider.jokes,
+          itemBuilder: (context, item) => ListTile(
             title: Text('"${item.joke}"'),
-          );
-        },
-      ),
-      gradient: _gradients[1],
-      index: panelIndex++,
-    ));
+          ),
+        ),
+      ));
+    }
 
     // Factoids Panel
-    panels.add(_buildTitledPanel(
-      title: 'Factoids',
-      body: ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: provider.factoids.length,
-        itemBuilder: (context, index) {
-          final item = provider.factoids[index];
-          return ListTile(
+    if (provider.factoids.isNotEmpty) {
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('Factoids'),
+        body: _buildListBody(
+          items: provider.factoids,
+          itemBuilder: (context, item) => ListTile(
             title: Text(item.fact),
-          );
-        },
-      ),
-      gradient: _gradients[2],
-      index: panelIndex++,
-    ));
+          ),
+        ),
+      ));
+    }
 
     // Wikipedia Panel
     if (provider.wikipediaContent != null) {
-      panels.add(_buildTitledPanel(
-        title: 'Wikipedia',
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('Wikipedia'),
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (provider.wikipediaContent!.tfa != null)
               _buildWikipediaSection(
@@ -146,85 +124,72 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
           ],
         ),
-        gradient: _gradients[3],
-        index: panelIndex++,
       ));
     }
 
     // Quotes Panel
     if (provider.quotes.isNotEmpty) {
-      panels.add(_buildTitledPanel(
-        title: 'Quotes',
-        body: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: provider.quotes.length,
-          itemBuilder: (context, index) {
-            final item = provider.quotes[index];
-            return ListTile(
-              title: Text('"${item.quote}"'),
-              subtitle: Text('- ${item.author}'),
-            );
-          },
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('Quotes'),
+        body: _buildListBody(
+          items: provider.quotes,
+          itemBuilder: (context, item) => ListTile(
+            title: Text('"${item.quote}"'),
+            subtitle: Text('- ${item.author}'),
+          ),
         ),
-        gradient: _gradients[4],
-        index: panelIndex++,
       ));
     }
 
     // Trivia Panel
     if (provider.triviaItems.isNotEmpty) {
-      panels.add(_buildTitledPanel(
-        title: 'Trivia',
-        body: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: provider.triviaItems.length,
-          itemBuilder: (context, index) {
+      panels.add(CustomExpansionPanel(
+        gradient: _gradients[panelIndex++],
+        header: _buildHeader('Trivia'),
+        body: _buildListBody(
+          items: provider.triviaItems,
+          itemBuilder: (context, item) {
+            final index = provider.triviaItems.indexOf(item);
             return TriviaItemWidget(
-              item: provider.triviaItems[index],
+              item: item,
               index: index,
             );
           },
         ),
-        gradient: _gradients[5],
-        index: panelIndex++,
       ));
     }
 
     return panels;
   }
 
-  ExpansionPanel _buildTitledPanel({
-    required String title,
-    required Widget body,
-    required LinearGradient gradient,
-    required int index,
+  Widget _buildHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18.0,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListBody<T>({
+    required List<T> items,
+    required Widget Function(BuildContext context, T item) itemBuilder,
   }) {
-    return ExpansionPanel(
-      headerBuilder: (BuildContext context, bool isExpanded) {
-        return Container(
-          decoration: BoxDecoration(gradient: gradient),
-          child: ListTile(
-            title: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        );
-      },
-      body: body,
-      isExpanded: _expandedIndex == index,
+    return Column(
+      children: items.map((item) => itemBuilder(context, item)).toList(),
     );
   }
 
   Widget _buildWikipediaSection(
       BuildContext context, String title, List<dynamic> items) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
