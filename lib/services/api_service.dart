@@ -23,7 +23,8 @@ class ApiService {
   final String _serpApiKey = dotenv.env['SERP_API_KEY'] ?? '';
   final String _source = dotenv.env['SOURCE'] ?? 'serpapi';
 
-  Future<List<Joke>> fetchJokes({int count = 10}) async {
+  // Old jokes API -- these don't refresh, same jokes every day
+  Future<List<Joke>> fetchJokesOld({int count = 10}) async {
     final response = await http.get(
       Uri.parse('$_jokesBaseUrl/search?limit=$count'),
       headers: {'Accept': 'application/json'},
@@ -38,6 +39,24 @@ class ApiService {
     } else {
       throw Exception('Failed to load jokes');
     }
+  }
+
+  // New jokes API -- these refresh every day but are called
+  // one at a time
+  Future<List<Joke>> fetchJokes({int count = 3}) async {
+    List<Joke> jokes = [];
+    for (int i = 0; i < count; i++) {
+      final response = await http.get(
+        Uri.parse(_jokesBaseUrl),
+        headers: {'Accept': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        jokes.add(Joke(id: data['id'], joke: data['joke']));
+      }
+    }
+    return jokes;
   }
 
   Future<List<NewsItem>> fetchNews() async {

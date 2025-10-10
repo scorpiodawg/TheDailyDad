@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
-import 'package:the_daily_dad/contants.dart';
+import 'package:the_daily_dad/constants.dart';
 import 'package:the_daily_dad/models/daily_data.dart';
 import 'package:the_daily_dad/models/factoid.dart';
 import 'package:the_daily_dad/models/joke.dart';
