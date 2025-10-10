@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/providers/daily_data_provider.dart';
 import 'package:the_daily_dad/utils/color_utils.dart';
+import 'package:the_daily_dad/widgets/animated_loading_indicator.dart';
 import 'package:the_daily_dad/widgets/custom_expansion_panel.dart';
 import 'package:the_daily_dad/widgets/trivia_item_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,11 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer<DailyDataProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.newsItems.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const AnimatedLoadingIndicator();
           }
 
           return RefreshIndicator(
             onRefresh: () => provider.fetchDailyData(forceRefresh: true),
+            color: Colors.white,
+            backgroundColor: Colors.purple.shade400,
+            strokeWidth: 3.0,
             child: ListView(
               padding: const EdgeInsets.all(8.0),
               children: _buildPanels(provider),
