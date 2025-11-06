@@ -10,6 +10,7 @@ import 'package:the_daily_dad/models/news_item.dart';
 import 'package:the_daily_dad/models/quote.dart';
 import 'package:the_daily_dad/models/trivia_item.dart';
 import 'package:the_daily_dad/models/wikipedia_content.dart';
+import 'package:the_daily_dad/services/android_auto_service.dart';
 import 'package:the_daily_dad/services/api_service.dart';
 import 'package:the_daily_dad/services/cache_service.dart';
 
@@ -62,6 +63,9 @@ class DailyDataProvider extends ChangeNotifier {
         // Re-fetch Wikipedia content as we don't cache it
         _log.info('Re-fetching Wikipedia content for cached data.');
         _wikipediaContent = await _apiService.fetchWikipediaFeaturedContent();
+
+        // Update Android Auto with cached data
+        await AndroidAutoService.updateDailyData(cachedData);
       } else {
         if (forceRefresh) {
           _log.info('Forcing refresh, ignoring cache.');
@@ -136,6 +140,9 @@ class DailyDataProvider extends ChangeNotifier {
           triviaItems: _triviaItems,
         );
         await _cacheService.cacheDailyData(newData);
+
+        // Update Android Auto with new data
+        await AndroidAutoService.updateDailyData(newData);
       }
     } catch (e) {
       _log.severe('An unrecoverable error occurred during fetchDailyData: $e');

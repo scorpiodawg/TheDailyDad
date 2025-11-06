@@ -42,3 +42,13 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Media library - MediaBrowserCompat and MediaSessionCompat are in this package
+    // Note: These classes are in androidx.media package but require the full media library
+    implementation("androidx.media:media:1.7.0")
+    // Legacy support for MediaBrowserCompat (if needed)
+    implementation("androidx.legacy:legacy-support-core-utils:1.0.0")
+    implementation("androidx.car.app:app:1.4.0")
+    implementation("androidx.car.app:app-projected:1.4.0")
+}
